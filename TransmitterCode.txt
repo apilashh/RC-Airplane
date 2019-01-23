@@ -1,0 +1,40 @@
+//import libraries
+#include <nRF24L01.h>
+#include <printf.h>
+#include <RF24.h>
+#include <RF24_config.h>
+#include <Servo.h>
+//initialze variables 
+#define CE_PIN 8 
+#define CSN_PIN 10
+#define JOYSTICK_X A0
+#define JOYSTICK_Y A1
+#define JOYSTICK_L A2
+#define JOYSTICK_M A3
+//create radio
+RF24 radio(CE_PIN, CSN_PIN); 
+int joystick[4];
+//create pipe used for communication between nrf24
+const uint64_t pipe = 0xE8E8F0F0E1LL; //define transmit pipe
+void setup() {
+  Serial.begin(9600);
+  Serial.println("RF24 Transmit Starting");
+  //begin transmitting to specific pipe
+  radio.begin();
+  radio.openWritingPipe(pipe);
+  
+
+}//end setup
+
+void loop() {
+  //read input from analog joysticks 
+  joystick[0] = analogRead(JOYSTICK_X);
+  joystick[1] = analogRead(JOYSTICK_Y);
+  joystick[2] = analogRead(JOYSTICK_L);
+  joystick[3] = analogRead(JOYSTICK_M);
+  //write analog input values to other radio
+  radio.write(joystick, sizeof(joystick));
+
+}//end main loop
+
+

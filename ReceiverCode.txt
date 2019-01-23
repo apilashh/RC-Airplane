@@ -1,0 +1,56 @@
+//import libraries 
+#include <nRF24L01.h>
+#include <printf.h>
+#include <RF24.h>
+#include <RF24_config.h>
+#include <Servo.h>
+//initialize variables 
+#define CE_PIN 8
+#define CSN_PIN 10
+#define AELIRON_PIN 5
+#define ELEVATOR_PIN 6
+#define RUDDER_PIN 9
+int throttle; 
+int aeliron;
+int elevator;
+int rudder; 
+//create servo for each part of plane
+Servo servo_aeliron;
+Servo servo_elevator;
+Servo servo_rudder;
+//create pipe used for communication between nrf24 devices 
+const uint64_t pipe = 0xE8E8F0F0E1LL;
+
+RF24 radio(CE_PIN,CSN_PIN);//create radio
+int joystick[4];
+void setup() {
+  Serial.begin(9600);
+  delay(1000);
+  Serial.println("Receiver Starting");
+  //start looking for input from transmitting device
+  radio.begin();
+  radio.openReadingPipe(1,pipe);
+  radio.startListening();
+  //intialize servo motors to specific pin
+  servo_aeliron.attach(AELIRON_PIN);
+  servo_elevator.attach(ELEVATOR_PIN);
+  servo_rudder.attach(RUDDER_PIN);
+}//end setup
+
+void loop() {
+  while(radio.available())
+  {
+      //read input 
+      radio.read(joystick,sizeof(joystick));
+      aeliron = map(joystick[1],0,1023,0,179);
+      elevator = map(joystick[2],0,1023,0,179);
+      rudder = map(joystick[3],0,1023,0,179);
+      //write analog joysticks values from transmitting device to 
+      //servos in plane for movement.
+      servo_aeliron.write(aeliron);
+      servo_elevator.write(elevator);
+      servo_rudder.write(rudder);
+      delay(15);
+    }//end if
+
+}//end main loop
